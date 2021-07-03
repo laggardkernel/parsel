@@ -21,6 +21,7 @@ class CannotRemoveElementWithoutParent(Exception):
 
 class SafeXMLParser(etree.XMLParser):
     def __init__(self, *args, **kwargs):
+        # CO(lk): replace entities by their text value (on by default);
         kwargs.setdefault('resolve_entities', False)
         super(SafeXMLParser, self).__init__(*args, **kwargs)
 
@@ -48,6 +49,7 @@ def create_root_node(text, parser_cls, base_url=None):
     """Create root node for text using given parser class.
     """
     body = text.strip().replace('\x00', '').encode('utf8') or b'<html/>'
+    # CO(lk): recover: try hard to parse through broken XML
     parser = parser_cls(recover=True, encoding='utf8')
     root = etree.fromstring(body, parser=parser, base_url=base_url)
     if root is None:
@@ -90,6 +92,7 @@ class SelectorList(list):
 
             selector.xpath('//a[href=$url]', url="http://www.example.com")
         """
+        # CO(lk): x is instance of `Selector`
         return self.__class__(flatten([x.xpath(xpath, namespaces=namespaces, **kwargs) for x in self]))
 
     def css(self, query):
@@ -243,6 +246,7 @@ class Selector(object):
             selector.xpath('//a[href=$url]', url="http://www.example.com")
         """
         try:
+            # CO(lk): xpath() method on lxml.etree._Element
             xpathev = self.root.xpath
         except AttributeError:
             return self.selectorlist_cls([])

@@ -12,7 +12,9 @@ from cssselect.parser import FunctionalPseudoElement
 
 class XPathExpr(OriginalXPathExpr):
 
+    # CO(lk): boolen whether match node or text()
     textnode = False
+    # CO(lk): str for which attr to match `/@attr`
     attribute = None
 
     @classmethod
@@ -40,6 +42,7 @@ class XPathExpr(OriginalXPathExpr):
         return path
 
     def join(self, combiner, other):
+        # CO(lk: textnode, attribute overridden
         super(XPathExpr, self).join(combiner, other)
         self.textnode = other.textnode
         self.attribute = other.attribute
@@ -56,6 +59,8 @@ class TranslatorMixin(object):
         xpath = super(TranslatorMixin, self).xpath_element(selector)
         return XPathExpr.from_xpath(xpath)
 
+    # NOTE(lk): override `xpath_pseudo_element` to support `::text`, `::attr`.
+    #  by dispatching the calling to custom methods.
     def xpath_pseudo_element(self, xpath, pseudo_element):
         """
         Dispatch method that transforms XPath to support pseudo-element
@@ -103,6 +108,7 @@ class GenericTranslator(TranslatorMixin, OriginalGenericTranslator):
 
 class HTMLTranslator(TranslatorMixin, OriginalHTMLTranslator):
     @lru_cache(maxsize=256)
+    # CO(lk): if no axis is set, use 'descendant-or-self::' as the default
     def css_to_xpath(self, css, prefix='descendant-or-self::'):
         return super(HTMLTranslator, self).css_to_xpath(css, prefix)
 

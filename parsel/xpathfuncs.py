@@ -54,6 +54,7 @@ def has_class(context, *classes):
     if node_cls is None:
         return False
     node_cls = ' ' + node_cls + ' '
+    # CO(lk): replace html whitespace with normal " " in class name
     node_cls = replace_html5_whitespaces(' ', node_cls)
     for cls in classes:
         if ' ' + cls + ' ' not in node_cls:
