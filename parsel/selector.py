@@ -3,6 +3,7 @@ XPath selectors based on lxml
 """
 
 import sys
+from warnings import warn
 
 import six
 from lxml import etree, html
@@ -73,7 +74,7 @@ class SelectorList(list):
     def __getstate__(self):
         raise TypeError("can't pickle SelectorList objects")
 
-    def xpath(self, xpath, namespaces=None, **kwargs):
+    def xpath(self, query=None, namespaces=None, **kwargs):
         """
         Call the ``.xpath()`` method for each element in this list and return
         their results flattened as another :class:`SelectorList`.
@@ -90,7 +91,22 @@ class SelectorList(list):
 
             selector.xpath('//a[href=$url]', url="http://www.example.com")
         """
-        return self.__class__(flatten([x.xpath(xpath, namespaces=namespaces, **kwargs) for x in self]))
+        # TODO: Remove following backward compatibility support in 2.0.0
+        if not query:
+            if kwargs.get("xpath"):
+                warn(
+                    "Param `xpath` is depreplaced and replaced by `query` instead."
+                    " This backward compatibility support will be removed in 2.0.0."
+                    " Please switch to `SelectorList.xpath(query=...)` or"
+                    " `SelectorList.xpath(...)`.",
+                    DeprecationWarning,
+                    stacklevel=2
+                )
+                query = kwargs.get("xpath")
+            else:
+                raise TypeError("xpath() missing 1 required positional argument: 'query'")
+
+        return self.__class__(flatten([x.xpath(query, namespaces=namespaces, **kwargs) for x in self]))
 
     def css(self, query):
         """
